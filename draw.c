@@ -30,6 +30,10 @@ void add_polygon( struct matrix *polygons,
 		  double x0, double y0, double z0, 
 		  double x1, double y1, double z1, 
 		  double x2, double y2, double z2 ) {
+  //one triangle:
+  add_point(polygons,x0,y0,z0);
+  add_point(polygons,x1,y1,z1);
+  add_point(polygons,x2,y2,z2);
 }
 
 /*======== void draw_polygons() ==========
@@ -44,7 +48,13 @@ triangles
 04/16/13 13:13:27
 jdyrlandweaver
 ====================*/
-void draw_polygons( struct matrix *polygons, screen s, color c ) {
+void draw_polygons( struct matrix *polygons, screen s, color c ) { //draws triangles
+  int i=0;
+  for ( ;i<polygons->lastcol;i+=3){
+    draw_line(polygons->m[0][i],polygons->m[1][i],polygons->m[0][i+1],polygons->m[1][i+1],s,c);
+    draw_line(polygons->m[0][i],polygons->m[1][i],polygons->m[0][i+2],polygons->m[1][i+2],s,c);
+    draw_line(polygons->m[0][i+1],polygons->m[1][i+1],polygons->m[0][i+2],polygons->m[1][i+2],s,c);
+  }
 }
 
 
