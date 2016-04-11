@@ -74,7 +74,7 @@ void draw_polygons( struct matrix *polygons, screen s, color c ) { //draws trian
 
   jdyrlandweaver
   ====================*/
-void add_sphere( struct matrix * points, 
+void add_sphere( struct matrix * points, //add triangles instead of points
 		 double cx, double cy, double r, 
 		 int step ) {
 
@@ -92,21 +92,47 @@ void add_sphere( struct matrix * points,
 
   int latStop, longStop, latStart, longStart;
   latStart = 0;
-  latStop = num_steps;
+  latStop = num_steps; //should be num_steps/2 ??? =20
   longStart = 0;
-  longStop = num_steps;
+  longStop = num_steps;//should be num_steps/2 ??? =10
   
+  //new code!!
   for ( lat = latStart; lat < latStop; lat++ ) {
     for ( longt = longStart; longt < longStop; longt++ ) {
       
       index = lat * (num_steps+1) + longt;
+      /* old code:
+      index = lat * (num_steps+1) + longt;
       add_edge( points, temp->m[0][index],
-		temp->m[1][index],
-		temp->m[2][index],
-		temp->m[0][index] + 1,
-		temp->m[1][index] + 1,
-		temp->m[2][index] );
-    }//end points only
+        temp->m[1][index],
+        temp->m[2][index],
+        temp->m[0][index] + 1,
+        temp->m[1][index] + 1,
+        temp->m[2][index] );
+    */
+      if (lat!=num_steps-1){
+      //All points except last one before bottom
+        if (longt != longStop-1)
+          add_polygon(points,temp->m[0][index],temp->m[1][index],temp->m[2][index],  temp->m[0][index+1],temp->m[1][index+1],temp->m[2][index+1],  temp->m[0][index+1+num_steps],temp->m[1][index+1+num_steps],temp->m[2][index+1+num_steps]);
+        //Special case for bottom triangles
+        if (longt == longStop)
+          add_polygon(points,temp->m[0][index],temp->m[1][index],temp->m[2][index],  temp->m[0][index+1],temp->m[1][index+1],temp->m[2][index+1],  temp->m[0][index+num_steps],temp->m[1][index+num_steps],temp->m[2][index+num_steps]);
+        //Add in second triangle
+        if (longt != 0 || longt != longStop-1)
+          add_polygon(points,temp->m[0][index],temp->m[1][index],temp->m[2][index], temp->m[0][index+1+num_steps],temp->m[1][index+1+num_steps],temp->m[2][index+1+num_steps], temp->m[0][index+num_steps],temp->m[1][index+num_steps],temp->m[2][index+num_steps]);
+      }
+      //Do the last half slice
+      else{
+      //All points except last one before bottom
+        if (longt != longStop-1)
+      add_polygon(points,temp->m[0][index],temp->m[1][index],temp->m[2][index],  temp->m[0][index+1],temp->m[1][index+1],temp->m[2][index+1],  temp->m[0][(index+1)%num_steps],temp->m[1][(index+1)%num_steps],temp->m[2][(index+1)%num_steps]);
+      //Special case for bottom triangles
+      if (longt == longStop)
+        add_polygon(points,temp->m[0][index],temp->m[1][index],temp->m[2][index],  temp->m[0][index+1],temp->m[1][index+1],temp->m[2][index+1],  temp->m[0][index%num_steps],temp->m[1][index%num_steps],temp->m[2][index%num_steps]);
+      if (longt != 0 || longt != longStop-1)
+        add_polygon(points,temp->m[0][index],temp->m[1][index],temp->m[2][index], temp->m[0][(index+1)%num_steps],temp->m[1][(index+1)%num_steps],temp->m[2][(index+1)%num_steps], temp->m[0][index%num_steps],temp->m[1][index%num_steps],temp->m[2][index%num_steps]);
+      }
+    } 
   }
   free_matrix(temp);
 }
@@ -173,7 +199,7 @@ void generate_sphere( struct matrix * points,
   03/22/12 13:34:03
   jdyrlandweaver
   ====================*/
-void add_torus( struct matrix * points, 
+void add_torus( struct matrix * points, //add triangle insted of points
 		double cx, double cy, double r1, double r2, 
 		int step ) {
 
@@ -268,7 +294,7 @@ void generate_torus( struct matrix * points,
 
   jdyrlandweaver
   ====================*/
-void add_box( struct matrix * points,
+void add_box( struct matrix * points, //add triangles instead of points
 	      double x, double y, double z,
 	      double width, double height, double depth ) {
 
@@ -277,30 +303,25 @@ void add_box( struct matrix * points,
   y2 = y - height;
   z2 = z - depth;
 
-  add_edge( points, 
-	    x, y, z, 
-	    x, y, z );
-  add_edge( points, 
-	    x, y2, z, 
-	    x, y2, z );
-  add_edge( points, 
-	    x2, y, z, 
-	    x2, y, z );
-  add_edge( points, 
-	    x2, y2, z, 
-	    x2, y2, z );
-  add_edge( points, 
-	    x, y, z2, 
-	    x, y, z2 );
-  add_edge( points, 
-	    x, y2, z2, 
-	    x, y2, z2 );
-  add_edge( points, 
-	    x2, y, z2, 
-	    x2, y, z2 );
-  add_edge( points, 
-	    x2, y2, z2, 
-	    x2, y2, z2 );
+  //front face
+  add_polygon(polygons,x,y,z, x2,y2,z, x2,y,z);
+  add_polygon(polygons,x,y,z, x,y2,z, x2,y2,z);
+  //back face
+  add_polygon(polygons,x,y,z2, x2,y,z2, x2,y2,z2);
+  add_polygon(polygons,x,y,z2, x2,y2,z2, x,y2,z2);
+  //top
+  add_polygon(polygons,x,y,z, x2,y,z, x2,y,z2);
+  add_polygon(polygons,x,y,z, x2,y,z2, x,y,z2);
+  //bottom
+  add_polygon(polygons,x,y2,z, x2,y2,z2, x2,y2,z);
+  add_polygon(polygons,x,y2,z, x,y2,z2, x2,y2,z2);
+ //left side
+  add_polygon(polygons,x,y,z, x,y,z2, x,y2,z2);
+  add_polygon(polygons,x,y,z, x,y2,z2, x,y2,z);
+  //right side
+  add_polygon(polygons,x2,y,z, x2,y2,z, x2,y2,z2);
+  add_polygon(polygons,x2,y,z, x2,y2,z2, x2,y,z2);
+
 }
   
 /*======== void add_circle() ==========
