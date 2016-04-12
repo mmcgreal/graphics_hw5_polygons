@@ -92,41 +92,31 @@ void add_sphere( struct matrix * points, //add triangles instead of points
 
   int latStop, longStop, latStart, longStart;
   latStart = 0;
-  latStop = num_steps; //should be num_steps/2 ??? =20
+  latStop = num_steps;
   longStart = 0;
-  longStop = num_steps;//should be num_steps/2 ??? =10
+  longStop = num_steps;
   
-  //new code!!
   for ( lat = latStart; lat < latStop; lat++ ) {
     for ( longt = longStart; longt < longStop; longt++ ) {
       
-      index = lat * (num_steps+1) + longt;
-      /* old code:
-      index = lat * (num_steps+1) + longt;
-      add_edge( points, temp->m[0][index],
-        temp->m[1][index],
-        temp->m[2][index],
-        temp->m[0][index] + 1,
-        temp->m[1][index] + 1,
-        temp->m[2][index] );
-    */
+      index = lat * (num_steps-1) + longt;
       if (lat!=num_steps-1){
-      //All points except last one before bottom
+      //all points except last one before bottom
         if (longt != longStop-1)
           add_polygon(points,temp->m[0][index],temp->m[1][index],temp->m[2][index],  temp->m[0][index+1],temp->m[1][index+1],temp->m[2][index+1],  temp->m[0][index+1+num_steps],temp->m[1][index+1+num_steps],temp->m[2][index+1+num_steps]);
-        //Special case for bottom triangles
+        //bottom triangles
         if (longt == longStop)
           add_polygon(points,temp->m[0][index],temp->m[1][index],temp->m[2][index],  temp->m[0][index+1],temp->m[1][index+1],temp->m[2][index+1],  temp->m[0][index+num_steps],temp->m[1][index+num_steps],temp->m[2][index+num_steps]);
-        //Add in second triangle
+        //add second triangle
         if (longt != 0 || longt != longStop-1)
           add_polygon(points,temp->m[0][index],temp->m[1][index],temp->m[2][index], temp->m[0][index+1+num_steps],temp->m[1][index+1+num_steps],temp->m[2][index+1+num_steps], temp->m[0][index+num_steps],temp->m[1][index+num_steps],temp->m[2][index+num_steps]);
       }
-      //Do the last half slice
+      //other half of sphere
       else{
-      //All points except last one before bottom
+      //all points except last one before bottom
         if (longt != longStop-1)
       add_polygon(points,temp->m[0][index],temp->m[1][index],temp->m[2][index],  temp->m[0][index+1],temp->m[1][index+1],temp->m[2][index+1],  temp->m[0][(index+1)%num_steps],temp->m[1][(index+1)%num_steps],temp->m[2][(index+1)%num_steps]);
-      //Special case for bottom triangles
+      //bottom triangles
       if (longt == longStop)
         add_polygon(points,temp->m[0][index],temp->m[1][index],temp->m[2][index],  temp->m[0][index+1],temp->m[1][index+1],temp->m[2][index+1],  temp->m[0][index%num_steps],temp->m[1][index%num_steps],temp->m[2][index%num_steps]);
       if (longt != 0 || longt != longStop-1)
@@ -222,14 +212,31 @@ void add_torus( struct matrix * points, //add triangle insted of points
   for ( lat = 0; lat < num_steps; lat++ )
     for ( longt = 0; longt < num_steps; longt++ ) {
       
-      index = lat * num_steps + longt;
-      
-      add_edge( points, temp->m[0][index],
-		temp->m[1][index],
-		temp->m[2][index],
-		temp->m[0][index] + 1,
-		temp->m[1][index] + 1,
-		temp->m[2][index] );
+      index = lat * (num_steps-1) + longt;
+           //Do all but the last slice
+      if (lat < latStop-1){
+  if (longt < longtStop-1){
+    add_polygon(points,temp->m[0][index],temp->m[1][index],temp->m[2][index], temp->m[0][index+1],temp->m[1][index+1],temp->m[2][index+1], temp->m[0][index+1+num_steps],temp->m[1][index+1+num_steps],temp->m[2][index+1+num_steps]);
+    add_polygon(points,temp->m[0][index],temp->m[1][index],temp->m[2][index], temp->m[0][index+num_steps+1],temp->m[1][index+num_steps+1],temp->m[2][index+num_steps+1],  temp->m[0][index+num_steps],temp->m[1][index+num_steps],temp->m[2][index+num_steps]);
+  }
+  //Special end case
+  else{
+    add_polygon(points,temp->m[0][index],temp->m[1][index],temp->m[2][index], temp->m[0][lat*num_steps],temp->m[1][lat*num_steps],temp->m[2][lat*num_steps], temp->m[0][index+1],temp->m[1][index+1],temp->m[2][index+1]);
+    add_polygon(points,temp->m[0][index],temp->m[1][index],temp->m[2][index], temp->m[0][index+1],temp->m[1][index+1],temp->m[2][index+1],  temp->m[0][index+num_steps],temp->m[1][index+num_steps],temp->m[2][index+num_steps]);
+  }
+      }
+      //Do the last slice
+      else{
+  if (longt < longtStop-1){
+    add_polygon(points,temp->m[0][index],temp->m[1][index],temp->m[2][index], temp->m[0][index+1],temp->m[1][index+1],temp->m[2][index+1], temp->m[0][index%num_steps +1],temp->m[1][index%num_steps +1],temp->m[2][index%num_steps +1]);
+    add_polygon(points,temp->m[0][index],temp->m[1][index],temp->m[2][index], temp->m[0][index%num_steps +1],temp->m[1][index%num_steps +1],temp->m[2][index%num_steps +1], temp->m[0][index%num_steps],temp->m[1][index%num_steps],temp->m[2][index%num_steps]);
+  }
+  //last piece of last slice
+  else{
+    add_polygon(points,temp->m[0][index],temp->m[1][index],temp->m[2][index], temp->m[0][lat*num_steps],temp->m[1][lat*num_steps],temp->m[2][lat*num_steps], temp->m[0][0],temp->m[1][0],temp->m[2][0]);
+    add_polygon(points,temp->m[0][index],temp->m[1][index],temp->m[2][index], temp->m[0][0],temp->m[1][0],temp->m[2][0],  temp->m[0][num_steps-1],temp->m[1][num_steps-1],temp->m[2][num_steps-1]);
+  }
+      }
     }//end points only
 }
 
@@ -294,7 +301,7 @@ void generate_torus( struct matrix * points,
 
   jdyrlandweaver
   ====================*/
-void add_box( struct matrix * points, //add triangles instead of points
+void add_box( struct matrix * polygons, //add triangles instead of points
 	      double x, double y, double z,
 	      double width, double height, double depth ) {
 
