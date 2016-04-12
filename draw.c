@@ -48,6 +48,8 @@ triangles
 04/16/13 13:13:27
 jdyrlandweaver
 ====================*/
+//EDIT THIS FN FOR BACKFACE CULLING
+//do not draw any back faces
 void draw_polygons( struct matrix *polygons, screen s, color c ) { //draws triangles
   int i=0;
   for ( ;i<polygons->lastcol;i+=3){
@@ -212,7 +214,7 @@ void add_torus( struct matrix * points, //add triangle insted of points
   for ( lat = 0; lat < num_steps; lat++ )
     for ( longt = 0; longt < num_steps; longt++ ) {
       
-      index = lat * (num_steps-1) + longt;
+      index = lat * (num_steps) + longt;
            //Do all but the last slice
       if (lat < latStop-1){
   if (longt < longtStop-1){
