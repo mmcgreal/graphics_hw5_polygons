@@ -50,13 +50,35 @@ jdyrlandweaver
 ====================*/
 //EDIT THIS FN FOR BACKFACE CULLING
 //do not draw any back faces
-void draw_polygons( struct matrix *polygons, screen s, color c ) { //draws triangles
-  int i=0;
-  for ( ;i<polygons->lastcol;i+=3){
-    draw_line(polygons->m[0][i],polygons->m[1][i],polygons->m[0][i+1],polygons->m[1][i+1],s,c);
-    draw_line(polygons->m[0][i],polygons->m[1][i],polygons->m[0][i+2],polygons->m[1][i+2],s,c);
-    draw_line(polygons->m[0][i+1],polygons->m[1][i+1],polygons->m[0][i+2],polygons->m[1][i+2],s,c);
+void draw_polygons( struct matrix *polygons, screen s, color c ) {
+  //Construct the edge matrix 
+  double nv_x, nv_y, nv_z; //Normal View Vectors
+  //double cp_x, cp_y, cp_z; //Cross Product
+  double dfvv_x = 0; int dfvv_y = 0; int dfvv_z = -1; //Default View Vectors
+
+  struct matrix *edges = new_matrix(2,2);
+  for (int i = 0; i < polygons->cols; i+=3) {
+    //Cross Product
+    //  A*B = <Ay*Bz-Az*By, Az*Bx-Ax*Bz, Ax*By-Ay*Bx>
+    nv_x = polygons->m[1][i] * polygons->m[2][i+1] - polygons->m[2][i] * polygons->m[1][i+1];
+    nv_y = polygons->m[2][i] * polygons->m[0][i+1] - polygons->m[0][i] * polygons->m[2][i+1];
+    nv_z = polygons->m[0][i] * polygons->m[1][i+1] - polygons->m[1][i] * polygons->m[0][i+1];
+
+    //find the angle between the dfvv and the nv 
+    double angle = acos( (nv_x*dfvv_x+nv_y*dfvv_y+nv_z*dfvv_z) / (sqrt(nv_x*nv_x + nv_y*nv_y+ nv_z*nv_z) * sqrt(dfvv_x*dfvv_x + dfvv_y*dfvv_y+ dfvv_z*dfvv_z)) );
+    if ( angle*(180/M_PI) > 90 && angle*(180/M_PI) < 270 ) {
+      add_edge( edges, polygons->m[0][i], polygons->m[0][i+1], 
+        polygons->m[1][i], polygons->m[1][i+1],
+        polygons->m[2][i], polygons->m[2][i+1]);
+      add_edge( edges, polygons->m[0][i], polygons->m[0][i+2], 
+        polygons->m[1][i], polygons->m[1][i+2],
+        polygons->m[2][i], polygons->m[2][i+2]);
+      add_edge( edges, polygons->m[0][i+1], polygons->m[0][i+2], 
+        polygons->m[1][i+1], polygons->m[1][i+2],
+        polygons->m[2][i+1], polygons->m[2][i+2]);
+    }
   }
+  draw_lines(edges, s, c);
 }
 
 
