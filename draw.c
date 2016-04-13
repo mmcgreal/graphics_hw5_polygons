@@ -57,7 +57,7 @@ void draw_polygons( struct matrix *polygons, screen s, color c ) {
   //double cp_x, cp_y, cp_z; //Cross Product
   double dfvv_x = 0; int dfvv_y = 0; int dfvv_z = -1; //Default View Vectors
 
-  struct matrix *edges = new_matrix(2,2);
+  struct matrix *edges = new_matrix(4,4);
   //Always segfaults on loop 21
   for (int i = 0; i < polygons->cols; i+=3) {
     //Cross Product
@@ -65,15 +65,15 @@ void draw_polygons( struct matrix *polygons, screen s, color c ) {
     nv_x = polygons->m[1][i] * polygons->m[2][i+1] - polygons->m[2][i] * polygons->m[1][i+1];
     nv_y = polygons->m[2][i] * polygons->m[0][i+1] - polygons->m[0][i] * polygons->m[2][i+1];
     nv_z = polygons->m[0][i] * polygons->m[1][i+1] - polygons->m[1][i] * polygons->m[0][i+1];
-    printf("%d: Where are you seg fault?\n", i);
+    //printf("%d: Where are you seg fault?\n", i);
     //find the angle between the dfvv and the nv 
-    printf("%d: Where are you seg fault? pt.2\n", i);
+    //printf("%d: Where are you seg fault? pt.2\n", i);
     double angle = acos( (nv_x*dfvv_x+nv_y*dfvv_y+nv_z*dfvv_z) / (sqrt(nv_x*nv_x + nv_y*nv_y+ nv_z*nv_z) * sqrt(dfvv_x*dfvv_x + dfvv_y*dfvv_y+ dfvv_z*dfvv_z)) );
     if ( angle*(180/M_PI) > 90 && angle*(180/M_PI) < 270 ) {
       printf("%d: Where are you seg fault? pt.3 (w/in the if!)\n", i);
       add_edge( edges, polygons->m[0][i], polygons->m[0][i+1], 
         polygons->m[1][i], polygons->m[1][i+1],
-        polygons->m[2][i], polygons->m[2][i+1]); //SOURCE OF SEG FAULT!!!!
+        polygons->m[2][i], polygons->m[2][i+1]); //SOURCE OF SEG FAULT
       printf("  Possible add_edge error pt.1\n");
       add_edge( edges, polygons->m[0][i], polygons->m[0][i+2], 
         polygons->m[1][i], polygons->m[1][i+2],
@@ -83,9 +83,9 @@ void draw_polygons( struct matrix *polygons, screen s, color c ) {
         polygons->m[1][i+1], polygons->m[1][i+2],
         polygons->m[2][i+1], polygons->m[2][i+2]);
       printf("  Possible add_edge error pt.3\n");
-      printf("%d: Where are you seg fault? pt.4 (end of the if!)\n", i);
+      //printf("%d: Where are you seg fault? pt.4 (end of the if!)\n", i);
     }
-    printf("%d: Where are you seg fault? pt.5\n", i);
+    //printf("%d: Where are you seg fault? pt.5\n", i);
   }
   draw_lines(edges, s, c);
 }
