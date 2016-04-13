@@ -62,6 +62,10 @@ void draw_polygons( struct matrix *polygons, screen s, color c ) {
   for (int i = 0; i < polygons->cols; i+=3) {
     //Cross Product
     //  A*B = <Ay*Bz-Az*By, Az*Bx-Ax*Bz, Ax*By-Ay*Bx>
+    //  A is the < x[1] - x[0], y[1] - y[0], z[1] - z[0]>
+    //  B is the < x[2] - x[0], y[2] - y[0], z[2] - z[0]>
+    // ** I THINK THIS IS WHERE THE PROBLEM IS BECAUSE THERE ISN'T SUBTRACTION
+    // ** WHILE CALCULATING THE NORMAL VECTORS
     nv_x = polygons->m[1][i] * polygons->m[2][i+1] - polygons->m[2][i] * polygons->m[1][i+1];
     nv_y = polygons->m[2][i] * polygons->m[0][i+1] - polygons->m[0][i] * polygons->m[2][i+1];
     nv_z = polygons->m[0][i] * polygons->m[1][i+1] - polygons->m[1][i] * polygons->m[0][i+1];
