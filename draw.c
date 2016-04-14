@@ -53,6 +53,7 @@ jdyrlandweaver
 void draw_polygons( struct matrix *polygons, screen s, color c ) {
   printf("Sucessful call to draw_polygons\n");
   //Construct the edge matrix 
+  double a_x, a_y, a_z, b_x, b_y, b_z;
   double nv_x, nv_y, nv_z; //Normal View Vectors
   //double cp_x, cp_y, cp_z; //Cross Product
   double dfvv_x = 0; int dfvv_y = 0; int dfvv_z = -1; //Default View Vectors
@@ -66,27 +67,32 @@ void draw_polygons( struct matrix *polygons, screen s, color c ) {
     //  B is the < x[2] - x[0], y[2] - y[0], z[2] - z[0]>
     // ** I THINK THIS IS WHERE THE PROBLEM IS BECAUSE THERE ISN'T SUBTRACTION
     // ** WHILE CALCULATING THE NORMAL VECTORS
-    nv_x = polygons->m[1][i] * polygons->m[2][i+1] - polygons->m[2][i] * polygons->m[1][i+1];
-    nv_y = polygons->m[2][i] * polygons->m[0][i+1] - polygons->m[0][i] * polygons->m[2][i+1];
-    nv_z = polygons->m[0][i] * polygons->m[1][i+1] - polygons->m[1][i] * polygons->m[0][i+1];
+    a_x = polygons->m[0][i+1] - polygons->m[0][i];
+    a_y = polygons->m[1][i+1] - polygons->m[1][i];
+    a_z = polygons->m[2][i+1] - polygons->m[2][i];
+
+    b_x = polygons->m[0][i+2] - polygons->m[0][i];
+    b_y = polygons->m[1][i+2] - polygons->m[1][i];
+    b_z = polygons->m[2][i+2] - polygons->m[2][i];
+
+    nv_x = a_y * b_z - a_z * b_y;
+    nv_y = a_z * b_x - a_x * b_z;
+    nv_z = a_x * b_y - a_y * b_x;
+
     //printf("%d: Where are you seg fault?\n", i);
     //find the angle between the dfvv and the nv 
     //printf("%d: Where are you seg fault? pt.2\n", i);
     double angle = acos( (nv_x*dfvv_x+nv_y*dfvv_y+nv_z*dfvv_z) / (sqrt(nv_x*nv_x + nv_y*nv_y+ nv_z*nv_z) * sqrt(dfvv_x*dfvv_x + dfvv_y*dfvv_y+ dfvv_z*dfvv_z)) );
     if ( angle*(180/M_PI) > 90 && angle*(180/M_PI) < 270 ) {
-      printf("%d: Where are you seg fault? pt.3 (w/in the if!)\n", i);
       add_edge( edges, polygons->m[0][i], polygons->m[0][i+1], 
         polygons->m[1][i], polygons->m[1][i+1],
-        polygons->m[2][i], polygons->m[2][i+1]); //SOURCE OF SEG FAULT
-      printf("  Possible add_edge error pt.1\n");
+        polygons->m[2][i], polygons->m[2][i+1]); 
       add_edge( edges, polygons->m[0][i], polygons->m[0][i+2], 
         polygons->m[1][i], polygons->m[1][i+2],
         polygons->m[2][i], polygons->m[2][i+2]);
-      printf("  Possible add_edge error pt.2\n");
       add_edge( edges, polygons->m[0][i+1], polygons->m[0][i+2], 
         polygons->m[1][i+1], polygons->m[1][i+2],
         polygons->m[2][i+1], polygons->m[2][i+2]);
-      printf("  Possible add_edge error pt.3\n");
       //printf("%d: Where are you seg fault? pt.4 (end of the if!)\n", i);
     }
     //printf("%d: Where are you seg fault? pt.5\n", i);
