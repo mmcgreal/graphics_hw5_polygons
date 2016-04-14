@@ -50,23 +50,24 @@ jdyrlandweaver
 ====================*/
 //EDIT THIS FN FOR BACKFACE CULLING
 //do not draw any back faces
+//Okay this is the code I wrote clearly it is nasty and does not work -E
+/*
 void draw_polygons( struct matrix *polygons, screen s, color c ) {
   printf("Sucessful call to draw_polygons\n");
   //Construct the edge matrix 
   double a_x, a_y, a_z, b_x, b_y, b_z;
   double nv_x, nv_y, nv_z; //Normal View Vectors
-  //double cp_x, cp_y, cp_z; //Cross Product
   double dfvv_x = 0; int dfvv_y = 0; int dfvv_z = -1; //Default View Vectors
 
   struct matrix *edges = new_matrix(4,4);
   //Always segfaults on loop 21
-  for (int i = 0; i < polygons->cols; i+=3) {
+  for (int i = 0; i < polygons->cols - 2; i+=3) {
     //Cross Product
     //  A*B = <Ay*Bz-Az*By, Az*Bx-Ax*Bz, Ax*By-Ay*Bx>
     //  A is the < x[1] - x[0], y[1] - y[0], z[1] - z[0]>
     //  B is the < x[2] - x[0], y[2] - y[0], z[2] - z[0]>
-    // ** I THINK THIS IS WHERE THE PROBLEM IS BECAUSE THERE ISN'T SUBTRACTION
-    // ** WHILE CALCULATING THE NORMAL VECTORS
+    // I THINK THIS IS WHERE THE PROBLEM IS BECAUSE THERE ISN'T SUBTRACTION
+    // WHILE CALCULATING THE NORMAL VECTORS
     a_x = polygons->m[0][i+1] - polygons->m[0][i];
     a_y = polygons->m[1][i+1] - polygons->m[1][i];
     a_z = polygons->m[2][i+1] - polygons->m[2][i];
@@ -82,7 +83,7 @@ void draw_polygons( struct matrix *polygons, screen s, color c ) {
     //printf("%d: Where are you seg fault?\n", i);
     //find the angle between the dfvv and the nv 
     //printf("%d: Where are you seg fault? pt.2\n", i);
-    double angle = acos( (nv_x*dfvv_x+nv_y*dfvv_y+nv_z*dfvv_z) / (sqrt(nv_x*nv_x + nv_y*nv_y+ nv_z*nv_z) * sqrt(dfvv_x*dfvv_x + dfvv_y*dfvv_y+ dfvv_z*dfvv_z)) );
+    double angle = acos( (nv_x*dfvv_x+nv_y*dfvv_y+nv_z*dfvv_z) / (sqrt(nv_x*nv_x + nv_y*nv_y+ nv_z*nv_z) * sqrt(dfvv_x*dfvv_x + dfvv_y*dfvv_y + dfvv_z*dfvv_z)) );
     if ( angle*(180/M_PI) > 90 && angle*(180/M_PI) < 270 ) {
       add_edge( edges, polygons->m[0][i], polygons->m[0][i+1], 
         polygons->m[1][i], polygons->m[1][i+1],
@@ -99,7 +100,41 @@ void draw_polygons( struct matrix *polygons, screen s, color c ) {
   }
   draw_lines(edges, s, c);
 }
+*/
 
+int to_cull (struct matrix *polygons, int i) {
+    double a_x, a_y, a_z, b_x, b_y, b_z; //A and B vectors
+    double nv_x, nv_y, nv_z; //Normal View Vectors
+    double dfvv_x = 0; int dfvv_y = 0; int dfvv_z = -1; //Default View Vectors
+
+    a_x = polygons->m[0][i+1] - polygons->m[0][i];
+    a_y = polygons->m[1][i+1] - polygons->m[1][i];
+    a_z = polygons->m[2][i+1] - polygons->m[2][i];
+
+    b_x = polygons->m[0][i+2] - polygons->m[0][i];
+    b_y = polygons->m[1][i+2] - polygons->m[1][i];
+    b_z = polygons->m[2][i+2] - polygons->m[2][i];
+
+    nv_x = a_y * b_z - a_z * b_y;
+    nv_y = a_z * b_x - a_x * b_z;
+    nv_z = a_x * b_y - a_y * b_x;
+
+    double angle = acos( (nv_x * dfvv_x + nv_y * dfvv_y + nv_z * dfvv_z) / 
+      (sqrt(nv_x * nv_x + nv_y * nv_y+ nv_z * nv_z) * sqrt(dfvv_x * dfvv_x + dfvv_y * dfvv_y + dfvv_z * dfvv_z)) );
+
+    return angle * (180/M_PI) > 90 && angle * (180/M_PI) < 270; 
+}
+
+void draw_polygons( struct matrix *polygons, screen s, color c ) { //draws triangles
+  int i=0;
+  for ( ;i<polygons->lastcol;i+=3){
+    if (to_cull(polygons, i)) {
+      draw_line(polygons->m[0][i],polygons->m[1][i],polygons->m[0][i+1],polygons->m[1][i+1],s,c);
+      draw_line(polygons->m[0][i],polygons->m[1][i],polygons->m[0][i+2],polygons->m[1][i+2],s,c);
+      draw_line(polygons->m[0][i+1],polygons->m[1][i+1],polygons->m[0][i+2],polygons->m[1][i+2],s,c);
+    } 
+  }
+}
 
 /*======== void add_sphere() ==========
   Inputs:   struct matrix * points
